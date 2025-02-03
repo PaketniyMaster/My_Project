@@ -1,0 +1,30 @@
+#    "../env/Scripts/python.exe" -m app.TestSteamFinal
+
+def parse_reviews_from_row(row_element):
+    reviews = []
+    try:
+        review_elements = row_element.find_elements(By.XPATH, './/div[@class="apphub_CardContentMain"]')
+        for review_element in review_elements:
+            review_text = review_element.text.strip()
+            if review_text and review_text not in reviews:
+                reviews.append(review_text)
+    except Exception as e:
+        print(f"Ошибка при извлечении текста отзыва: {e}")
+    return reviews
+
+def parse_page_reviews(driver):
+    reviews = []
+    try:
+        row_elements = driver.find_elements(By.XPATH, '//div[contains(@id, "page_")]')
+        for row in row_elements:
+            reviews += parse_reviews_from_row(row)
+    except Exception as e:
+        print(f"Ошибка при парсинге отзывов: {e}")
+    return reviews
+
+def scroll_to_next_page(driver):
+    try:
+        driver.execute_script("window.scrollBy(0, document.body.scrollHeight);")
+        time.sleep(random.uniform(2, 4))
+    except Exception as e:
+        print(f"Ошибка при пролистывании: {e}")
