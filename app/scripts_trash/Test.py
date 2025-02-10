@@ -46,7 +46,7 @@ def scroll_to_next_page(driver, current_page):
         return False
 
 def main():
-    url = "https://steamcommunity.com/app/2179170/reviews/?browsefilter=toprated&snr=1_5_100010_"
+    url = "https://steamcommunity.com/app/1307580/reviews/?browsefilter=trendsixmonths&snr=1_5_100010_&p=1"
     driver = webdriver.Chrome()
     driver.get(url)
     

@@ -121,8 +121,8 @@ def scroll_to_bottom(driver):
         last_height = new_height
 
 if __name__ == "__main__":
-    #steam_url = settings.STEAM_URL
-    steam_url = "https://store.steampowered.com/search/?sort_by=Reviews_DESC&untags=492%2C872%2C44868%2C12095%2C21978%2C856791%2C9130%2C24904%2C10397%2C13906%2C5577%2C1445&category1=998&hidef2p=1&ndl=1"
+    steam_url = settings.STEAM_URL
+    #steam_url = "https://store.steampowered.com/search/?sort_by=Reviews_DESC&untags=492%2C872%2C44868%2C12095%2C21978%2C856791%2C9130%2C24904%2C10397%2C13906%2C5577%2C1445&category1=998&hidef2p=1&ndl=1"
     #steam_url = "https://store.steampowered.com/search/?sort_by=Released_DESC&untags=492%2C872%2C44868%2C12095%2C21978%2C856791%2C9130%2C24904%2C10397%2C13906%2C5577%2C1445&category1=998&hidef2p=1&ndl=1"
     driver = setup_driver()
 
