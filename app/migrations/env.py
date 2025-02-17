@@ -5,7 +5,8 @@ from alembic import context
 # Импортируем Base из database.py
 from app.database import Base, engine
 from app.models.game import Game  # Убедись, что модель подключена
-from app.models.review import Review  # Убедись, что модель подключена
+from app.models.review import Review  
+from app.models.user import User
 
 # Конфиг Alembic
 config = context.config
