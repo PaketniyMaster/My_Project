@@ -6,10 +6,11 @@ from selenium.webdriver.support.ui import WebDriverWait, Select
 from selenium.webdriver.support import expected_conditions as EC
 from concurrent.futures import ThreadPoolExecutor
 from app.Parsing.Driver import setup_driver  # Импортируем функцию для создания драйвера
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 CSV_GAMES = "games_test.csv"
 CSV_GAME_DETAILS = "game_details_test.csv"
-NUM_THREADS = 5  # Количество одновременно работающих браузеров
+NUM_THREADS = 10  # Количество одновременно работающих браузеров
 
 def handle_age_check(driver):
     if "agecheck" in driver.current_url:
@@ -92,25 +93,52 @@ def save_game_details_to_csv(details_list):
         writer.writeheader()
         writer.writerows(details_list)
 
+# def parse_games_multithreaded():
+#     start_time = time.time()
+#     with open(CSV_GAMES, newline="", encoding="utf-8") as file:
+#         reader = csv.DictReader(file)
+#         game_urls = [row["link"] for row in reader]
+
+#     def process_url(url):
+#         driver = setup_driver()  # Создаём новый экземпляр драйвера для каждого потока
+#         try:
+#             return get_game_details(driver, url)
+#         finally:
+#             driver.quit()  # Обязательно закрываем драйвер после использования
+
+#     details_list = []
+
+#     with ThreadPoolExecutor(max_workers=NUM_THREADS) as executor:
+#         results = list(executor.map(process_url, game_urls))
+
+#     details_list = [res for res in results if res is not None]
+#     save_game_details_to_csv(details_list)
+#     print(f"⏳ Время обработки 50 игр: {time.time() - start_time:.2f} сек.")
+#     print("✅ Данные об играх сохранены в game_details.csv")
+def process_url(url):
+    driver = setup_driver()  # Создаём новый экземпляр драйвера для каждого потока
+    try:
+        return get_game_details(driver, url)  # Парсим страницу
+    finally:
+        driver.quit()  # Обязательно закрываем браузер после работы
+
 def parse_games_multithreaded():
+    start_time = time.time()
+    
     with open(CSV_GAMES, newline="", encoding="utf-8") as file:
         reader = csv.DictReader(file)
         game_urls = [row["link"] for row in reader]
 
-    def process_url(url):
-        driver = setup_driver()  # Создаём новый экземпляр драйвера для каждого потока
-        try:
-            return get_game_details(driver, url)
-        finally:
-            driver.quit()  # Обязательно закрываем драйвер после использования
-
     details_list = []
-
+    
     with ThreadPoolExecutor(max_workers=NUM_THREADS) as executor:
-        results = list(executor.map(process_url, game_urls))
+        futures = {executor.submit(process_url, url): url for url in game_urls}
 
-    details_list = [res for res in results if res is not None]
+        for future in as_completed(futures):
+            result = future.result()
+            if result:
+                details_list.append(result)
+
     save_game_details_to_csv(details_list)
+    print(f"⏳ Время обработки {len(game_urls)} игр: {time.time() - start_time:.2f} сек.")
     print("✅ Данные об играх сохранены в game_details.csv")
-
-

@@ -10,7 +10,7 @@ D:\VSC Projects\App\Project\game_details.csv
 D:\VSC Projects\App\Project\games.csv
 D:\VSC Projects\App\Project\reviews.csv
 D:\VSC Projects\App\Project\games_test.csv
-
+*.csv
 # Distribution / packaging
 .Python
 build/
