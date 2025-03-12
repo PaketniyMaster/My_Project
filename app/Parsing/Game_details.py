@@ -93,28 +93,6 @@ def save_game_details_to_csv(details_list):
         writer.writeheader()
         writer.writerows(details_list)
 
-# def parse_games_multithreaded():
-#     start_time = time.time()
-#     with open(CSV_GAMES, newline="", encoding="utf-8") as file:
-#         reader = csv.DictReader(file)
-#         game_urls = [row["link"] for row in reader]
-
-#     def process_url(url):
-#         driver = setup_driver()  # Создаём новый экземпляр драйвера для каждого потока
-#         try:
-#             return get_game_details(driver, url)
-#         finally:
-#             driver.quit()  # Обязательно закрываем драйвер после использования
-
-#     details_list = []
-
-#     with ThreadPoolExecutor(max_workers=NUM_THREADS) as executor:
-#         results = list(executor.map(process_url, game_urls))
-
-#     details_list = [res for res in results if res is not None]
-#     save_game_details_to_csv(details_list)
-#     print(f"⏳ Время обработки 50 игр: {time.time() - start_time:.2f} сек.")
-#     print("✅ Данные об играх сохранены в game_details.csv")
 def process_url(url):
     driver = setup_driver()  # Создаём новый экземпляр драйвера для каждого потока
     try:

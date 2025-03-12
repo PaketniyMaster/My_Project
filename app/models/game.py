@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, Date
+from sqlalchemy import Column, Integer, String, Float, Date, Boolean
 from app.database import Base
 
 class Game(Base):
@@ -9,5 +9,5 @@ class Game(Base):
     link = Column(String, nullable=True)
     release_date = Column(Date, nullable=True)
     tags = Column(String, nullable=True)
+    russian_supported = Column(Boolean, nullable=True)  
     rating = Column(Float, nullable=True)
-    positive_percent = Column(Float, nullable=True)

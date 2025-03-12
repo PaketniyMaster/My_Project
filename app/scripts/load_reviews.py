@@ -1,83 +1,105 @@
 import csv
 import re
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import NoResultFound
 from app.database import engine
 from app.models.game import Game
 from app.models.review import Review
 
-SessionLocal = sessionmaker(bind=engine)
-session = SessionLocal()
+BATCH_SIZE = 100  # размер пакета, можно изменить
+MAX_WORKERS = 5   # число потоков для каждого пакета
 
-CSV_REVIEWS = "reviews.csv"
+class ReviewsLoader:
+    def __init__(self, csv_file, max_workers=MAX_WORKERS, batch_size=BATCH_SIZE):
+        self.csv_file = csv_file
+        self.max_workers = max_workers
+        self.batch_size = batch_size
 
-def clean_review(text):
-    """Удаляет ненужные строки и оставляет только текст отзыва."""
-    patterns_to_remove = [
-        r"Пользовател[ейь]?.*посчитал[и]?.*обзор полезным.*",  # Убираем строки про полезность
-        r"Ещё никто не посчитал этот обзор полезным.*",  # Убираем пустые отзывы
-        r"Пользовател[ейь]?.*посчитал[и]?.*обзор полезным.*",  
-        r"Пользователей, посчитавших обзор полезным: \d+ \d+",
-        r"Пользователей, посчитавших обзор полезным: \d+",
-        r"Пользователей, посчитавших обзор забавным: \d+ \d+",
-        r"Пользователей, посчитавших обзор забавным: \d+",
-        r".*пользовател[ейь]?.*посчитал[и]? этот обзор полезным.*",  # Удаляем строки про полезность
-        r".*пользовател[ейь]?.*посчитал[и]? этот обзор забавным.*",  # Удаляем строки про забавность
-        r"^\d+\s+.*",  # Удаляем одиночные числа в начале строки
-        r"\d+ ч. всего.*",  # Удаляем строки с количеством часов
-        r"Опубликовано:.*",  # Удаляем дату публикации
-        r"ОБЗОР ПРОДУКТА В РАННЕМ ДОСТУПЕ.*",  # Удаляем отметку о раннем доступе
-        r"На этот обзор есть ответ от разработчика.*",  # Удаляем строки про ответы разработчиков
-        r"Товар получен бесплатно",  # Удаляем строку про бесплатный товар
-        r"Have requested a refund\.",  # Удаляем про возврат
-    ]
-    
-    for pattern in patterns_to_remove:
-        text = re.sub(pattern, "", text, flags=re.IGNORECASE | re.MULTILINE)
+    def clean_review(self, text):
+        """Удаляет ненужные элементы из отзыва."""
+        patterns_to_remove = [
+            r"\[/?h1\]", r"\[/?b\]", r"\[/?i\]", r"\[/?list\]", r"\[\*\]", r"\[/?h2\]",
+            r"Пользовател[ейь]?.*посчитал[и]?.*обзор полезным.*",
+            r"Ещё никто не посчитал этот обзор полезным.*",
+            r"Пользователей, посчитавших обзор полезным: \d+",
+            r"Пользователей, посчитавших обзор забавным: \d+",
+            r".*пользовател[ейь]?.*посчитал[и]? этот обзор полезным.*",
+            r".*пользовател[ейь]?.*посчитал[и]? этот обзор забавным.*",
+            r"^\d+\s+.*",
+            r"\d+ ч. всего.*",
+            r"Опубликовано:.*",
+            r"ОБЗОР ПРОДУКТА В РАННЕМ ДОСТУПЕ.*",
+            r"На этот обзор есть ответ от разработчика.*",
+            r"Товар получен бесплатно",
+            r"Have requested a refund\.",
+        ]
+        for pattern in patterns_to_remove:
+            text = re.sub(pattern, "", text, flags=re.IGNORECASE | re.MULTILINE)
+        text = re.sub(r"\n\s*\n", "\n", text).strip()  # Убираем лишние переносы строк
+        return text
 
-    # Повторно удаляем возможные числа, которые остались
-    text = re.sub(r"^\d+\.\s*", "", text, flags=re.MULTILINE)  # "10. Текст" → "Текст"
-    text = re.sub(r"^\d+\s*", "", text, flags=re.MULTILINE)  # "18 Текст" → "Текст"
+    def extract_rating(self, review_type):
+        """Конвертирует 'Положительный' -> 1, 'Отрицательный' -> 0"""
+        if "Положительный" in review_type:
+            return 1
+        if "Отрицательный" in review_type:
+            return 0
+        return None
 
-    # Убираем пустые строки
-    text = re.sub(r"\n\s*\n", "\n", text).strip()
-
-    return text
-
-def extract_rating(text):
-    """Определяет рейтинг отзыва (1 - положительный, 0 - отрицательный)."""
-    if "Рекомендую" in text:
-        return 1
-    if "Не рекомендую" in text:
-        return 0
-    return None
-
-def process_review_text(text):
-    """Удаляет 'Рекомендую' и 'Не рекомендую' из текста отзыва."""
-    text = re.sub(r"^(Рекомендую|Не рекомендую)\s*", "", text, flags=re.MULTILINE)
-    return text.strip()
-
-def load_reviews():
-    with open(CSV_REVIEWS, newline="", encoding="utf-8") as file:
-        reader = csv.DictReader(file)
-        for row in reader:
+    def process_row(self, row):
+        """Обрабатывает одну строку CSV в отдельном потоке."""
+        SessionLocal = sessionmaker(bind=engine)
+        session = SessionLocal()
+        try:
+            # Поиск игры по названию
             try:
                 game = session.query(Game).filter_by(name=row["game_title"]).one()
             except NoResultFound:
                 print(f"❌ Игра '{row['game_title']}' не найдена. Пропускаем...")
-                continue
+                return
 
             original_text = row["review_text"]
-            rating = extract_rating(original_text)  # Получаем рейтинг
-            review_text = clean_review(original_text)  # Удаляем лишнее
-            review_text = process_review_text(review_text)  # Убираем "Рекомендую"
+            rating = self.extract_rating(row["review_type"])
+            review_text = self.clean_review(original_text)
 
             if review_text:  # Пропускаем пустые отзывы
                 review = Review(game_id=game.id, review_text=review_text, rating=rating)
                 session.add(review)
+                session.commit()
+        except Exception as e:
+            session.rollback()
+            print(f"Ошибка при обработке отзыва для игры '{row['game_title']}': {e}")
+        finally:
+            session.close()
 
-    session.commit()
-    print("✅ Отзывы загружены в БД")
+    def process_batch(self, batch):
+        """Обрабатывает пакет строк параллельно."""
+        with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
+            futures = [executor.submit(self.process_row, row) for row in batch]
+            for future in as_completed(futures):
+                try:
+                    future.result()
+                except Exception as e:
+                    print("Ошибка в будущем:", e)
 
-load_reviews()
-session.close()
+    def load(self):
+        """Обрабатывает CSV пакетами и загружает отзывы в БД."""
+        batch = []
+        with open(self.csv_file, newline="", encoding="utf-8") as file:
+            reader = csv.DictReader(file, delimiter=";")
+            for row in reader:
+                batch.append(row)
+                if len(batch) >= self.batch_size:
+                    self.process_batch(batch)
+                    print(f"✅ Обработан пакет из {len(batch)} строк")
+                    batch = []
+            if batch:
+                self.process_batch(batch)
+                print(f"✅ Обработан последний пакет из {len(batch)} строк")
+
+        print("✅ Отзывы загружены в БД")
+
+if __name__ == "__main__":
+    loader = ReviewsLoader("reviews_test1.csv")
+    loader.load()
