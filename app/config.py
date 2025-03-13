@@ -1,6 +1,4 @@
 from pydantic_settings import BaseSettings
-from dotenv import load_dotenv
-import os
 
 class Settings(BaseSettings):
     STEAM_URL: str
@@ -11,6 +9,6 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
 
     class Config:
-        env_file = ".env"
+        case_sensitive = True
 
 settings = Settings()
