@@ -42,11 +42,19 @@ app.openapi = lambda: custom_openapi(app)
 app.include_router(auth.router, prefix="/auth", tags=["Auth"])
 app.include_router(search.router)
 
+origins = [
+    "http://localhost",
+    "http://localhost:5173",  # Vite
+    "http://127.0.0.1:8000",
+    "myproject-production-5993.up.railway.app",
+    "https://app-frontend2-0-jb566gw1b-vladimirs-projects-49759504.vercel.app",
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*", "http://127.0.0.1:8000"],
+    allow_origins=origins,
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "OPTIONS", "PUT", "DELETE"],
     allow_headers=["*"],
 )
 
