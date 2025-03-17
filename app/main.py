@@ -3,6 +3,7 @@ from fastapi.security import OAuth2PasswordBearer
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.utils import get_openapi
 from app.routers import auth
+from app.routers import search
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/token", auto_error=False)
 
@@ -39,10 +40,11 @@ app = FastAPI(
 
 app.openapi = lambda: custom_openapi(app)
 app.include_router(auth.router, prefix="/auth", tags=["Auth"])
+app.include_router(search.router)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
