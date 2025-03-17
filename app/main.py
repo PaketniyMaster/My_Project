@@ -46,7 +46,6 @@ origins = [
     "http://localhost",
     "http://localhost:5173",  # Vite
     "http://127.0.0.1:8000",
-    "myproject-production-5993.up.railway.app",
     "https://myproject-production-5993.up.railway.app",
     "https://app-frontend2-0-jb566gw1b-vladimirs-projects-49759504.vercel.app",
 ]
@@ -55,8 +54,9 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
     allow_credentials=True,
-    allow_methods=["GET", "POST", "OPTIONS", "PUT", "DELETE"],
+    allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["*"],  # Разрешает клиенту видеть все заголовки
 )
 
 @app.get("/")
