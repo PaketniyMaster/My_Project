@@ -38,10 +38,6 @@ app = FastAPI(
     dependencies=[Depends(oauth2_scheme)]
 )
 
-app.openapi = lambda: custom_openapi(app)
-app.include_router(auth.router, prefix="/auth", tags=["Auth"])
-app.include_router(search.router)
-
 origins = [
     "http://localhost",
     "http://localhost:5173",  # Vite
@@ -58,6 +54,12 @@ app.add_middleware(
     allow_headers=["*"],
     expose_headers=["*"],  # Разрешает клиенту видеть все заголовки
 )
+
+
+
+app.openapi = lambda: custom_openapi(app)
+app.include_router(auth.router, prefix="/auth", tags=["Auth"])
+app.include_router(search.router)
 
 @app.get("/")
 async def root():
