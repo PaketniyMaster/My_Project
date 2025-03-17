@@ -1,7 +1,71 @@
-#    "../env/Scripts/python.exe" -m app.TestSteamFinal
-#python -m app.Parse_launch
-#Mika and The Witch's Mountain,22 янв. 2025 г.,90% из 332 обзоров положительные.,Нет ссылки
-#SELECT games.name AS game_name, reviews.review_text, reviews.rating  
-#FROM reviews  
-#JOIN games ON reviews.game_id = games.id  
-#WHERE games.name = 'City Transport Simulator: Tram';
+aiohappyeyeballs==2.5.0
+aiohttp==3.11.13
+aiosignal==1.3.2
+alembic==1.14.1
+annotated-types==0.7.0
+anyio==4.5.2
+async-timeout==5.0.1
+asyncpg==0.30.0
+attrs==24.3.0
+babel==2.17.0
+bcrypt==4.2.1
+beautifulsoup4==4.13.3
+bs4==0.0.2
+certifi==2024.12.14
+cffi==1.17.1
+charset-normalizer==3.4.1
+click==8.1.8
+colorama==0.4.6
+cryptography==44.0.0
+ecdsa==0.19.0
+exceptiongroup==1.2.2
+fastapi==0.115.8
+frozenlist==1.5.0
+greenlet==3.1.1
+h11==0.14.0
+idna==3.10
+importlib_metadata==8.5.0
+importlib_resources==6.4.5
+Mako==1.3.8
+MarkupSafe==2.1.5
+multidict==6.1.0
+numpy==2.2.2
+outcome==1.3.0.post0
+pandas==2.2.3
+passlib==1.7.4
+propcache==0.3.0
+psycopg==3.2.4
+psycopg2==2.9.10
+pyasn1==0.6.1
+pycparser==2.22
+pydantic==2.10.6
+pydantic-settings==2.7.1
+pydantic_core==2.27.2
+PySocks==1.7.1
+python-dateutil==2.9.0.post0
+python-dotenv==1.0.1
+python-jose==3.3.0
+python-multipart==0.0.20
+pytz==2025.1
+redis==5.2.1
+requests==2.32.3
+rsa==4.9
+selenium==4.27.1
+selenium-stealth==1.0.6
+six==1.17.0
+sniffio==1.3.1
+sortedcontainers==2.4.0
+soupsieve==2.6
+spotipy==2.25.1
+SQLAlchemy==2.0.37
+starlette==0.44.0
+trio==0.27.0
+trio-websocket==0.11.1
+typing_extensions==4.12.2
+tzdata==2025.1
+urllib3==2.2.3
+uvicorn==0.33.0
+websocket-client==1.8.0
+wsproto==1.2.0
+yarl==1.18.3
+zipp==3.20.2
