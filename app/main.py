@@ -38,22 +38,25 @@ app = FastAPI(
     dependencies=[Depends(oauth2_scheme)]
 )
 
-origins = [
-    "http://localhost",
-    "http://localhost:5173",  # Vite
-    "http://127.0.0.1:8000",
-    "https://myproject-production-5993.up.railway.app",
-    "https://app-frontend2-0-jb566gw1b-vladimirs-projects-49759504.vercel.app",
-]
-
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "http://localhost",
+        "http://localhost:5173",
+        "http://127.0.0.1:8000",
+        "https://myproject-production-5993.up.railway.app",
+        "https://app-frontend2-0-jb566gw1b-vladimirs-projects-49759504.vercel.app",
+        "https://web.telegram.org",
+        "https://web.telegram.org/k/",
+        "https://t.me/GamesRec_bot/gamefinder",
+        "https://t.me/GamesRec_bot"
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
-    expose_headers=["*"],  # Разрешает клиенту видеть все заголовки
+    expose_headers=["*"],
 )
+
 
 
 

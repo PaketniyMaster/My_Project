@@ -20,3 +20,7 @@ def search_games_endpoint(query: str, db: Session = Depends(get_db)):
             rating=game.rating
         ) for game in games
     ]
+
+@router.options("/games/search")
+async def options_handler():
+    return {}
