@@ -9,8 +9,12 @@ from fastapi.security import OAuth2PasswordBearer
 router = APIRouter()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/token")
 
-@router.get("/games/search", response_model=list[GameResponse], dependencies=[Depends(oauth2_scheme)])
-def search_games_endpoint(query: str, db: Session = Depends(get_db)):
+@router.get("/games/search", response_model=list[GameResponse])
+def search_games_endpoint(
+    query: str,
+    db: Session = Depends(get_db),
+    token: str = Depends(oauth2_scheme)
+):
     games = search_games(db, query)
     return [
         GameResponse(
@@ -22,7 +26,3 @@ def search_games_endpoint(query: str, db: Session = Depends(get_db)):
             rating=game.rating
         ) for game in games
     ]
-
-@router.options("/games/search")
-async def options_handler():
-    return {}
