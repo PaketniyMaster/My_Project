@@ -1,15 +1,17 @@
 import csv
+import os
 import time
 import random
 import requests
 from bs4 import BeautifulSoup
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-CSV_GAMES = "games.csv"
-CSV_GAME_DETAILS = "game_details_10k.csv"
-NUM_THREADS = 10  # Количество потоков
-MAX_GAMES = 10000  # Ограничение на 10 000 игр
-SAVE_EVERY = 500  # Сохранять прогресс каждые 500 игр
+CSV_GAMES = os.path.join(os.path.dirname(__file__), "..", "csv", "games.csv")
+CSV_GAME_DETAILS = os.path.join(os.path.dirname(__file__), "..", "csv", "game_details_20k-27k.csv")
+NUM_THREADS = 10  
+MAX_GAMES = 10000  
+SAVE_EVERY = 500  
+START_FROM = 20004  
 
 USER_AGENTS = [
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
@@ -42,7 +44,6 @@ def get_game_details(game_url, session):
         russian_supported = soup.select_one("#languageTable tr:nth-of-type(2) td:nth-of-type(2)")
         russian_supported = "Да" if russian_supported and "✔" in russian_supported.text else "Нет"
 
-
         review_summary = soup.select(".user_reviews_summary_row")
 
         reviews = "Отзывов нет"
@@ -50,7 +51,6 @@ def get_game_details(game_url, session):
         for review in review_summary:
             subtitle = review.select_one(".subtitle")
             if subtitle and "All Reviews" in subtitle.text:
-                # Попытка получить `data-tooltip-html`
                 tooltip = review.get("data-tooltip-html")
                 review_text = review.select_one(".game_review_summary")
                 review_count = review.select_one(".responsive_hidden")
@@ -92,7 +92,7 @@ def parse_games_multithreaded():
     
     with open(CSV_GAMES, newline="", encoding="utf-8") as file:
         reader = csv.DictReader(file)
-        game_urls = [row["link"] for row in reader][:MAX_GAMES]  # Берем только 10 000 игр
+        game_urls = [row["link"] for i, row in enumerate(reader) if i >= START_FROM][:MAX_GAMES]  
 
     details_list = []
     
@@ -108,9 +108,9 @@ def parse_games_multithreaded():
                 if (i + 1) % SAVE_EVERY == 0:
                     save_game_details_to_csv(details_list, append=True)
                     details_list.clear()
-                    print(f"✅ Сохранено {i + 1}/{MAX_GAMES} игр")
+                    print(f"✅ Сохранено {i + 1 + START_FROM}/{MAX_GAMES + START_FROM} игр")
 
-                time.sleep(random.uniform(0.2, 0.5))  # Минимальная задержка
+                time.sleep(random.uniform(0.2, 0.5))  
 
     if details_list:
         save_game_details_to_csv(details_list, append=True)
