@@ -1,12 +1,14 @@
 import csv
-import time
+import logging
 import random
 import requests
+import sys
 from bs4 import BeautifulSoup
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-CSV_FILE = "games.csv"
+CSV_FILE = "games123.csv"
 MAX_THREADS = 10
+logging.basicConfig(level=logging.INFO)
 
 USER_AGENTS = [
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
@@ -65,7 +67,7 @@ def fetch_all_games():
 
             all_games.extend(new_games)
             start += MAX_THREADS * 100
-            print(f"✅ Собрано игр: {len(all_games)}")
+            print(f"Собрано игр: {len(all_games)}")
 
     return all_games
 
@@ -75,6 +77,9 @@ def save_to_csv(games):
         writer.writeheader()
         writer.writerows(games)
 
+logging.info("Скрипт действительно выполняется!")
+print("Используется Python в Games_list_bs4.py:", sys.executable)
 games = fetch_all_games()
-print(f"🎮 Итог: собрано игр: {len(games)}")
+logging.info("Скрипт действительно выполняется!2")
+print(f"Итог: собрано игр: {len(games)}")
 save_to_csv(games)

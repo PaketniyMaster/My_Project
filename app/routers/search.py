@@ -13,15 +13,13 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/token")
 def search_games_endpoint(
     query: str,
     tags: str = None,
-    min_date: str = None,
-    max_date: str = None,
     min_rating: float = None,
     max_rating: float = None,
     db: Session = Depends(get_db),
     token: str = Depends(oauth2_scheme)
 ):
     tags_list = tags.split(",") if tags else []
-    games = search_games(db, query, tags_list, min_date, max_date, min_rating, max_rating)
+    games = search_games(db, query, tags_list, min_rating, max_rating)
     return [
         GameResponse(
             name=game.name,
