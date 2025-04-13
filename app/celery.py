@@ -24,4 +24,5 @@ celery.conf.timezone = "Asia/Yekaterinburg"
 
 #              celery -A app.celery worker --loglevel=debug
 #              celery -A app worker --loglevel=debug --pool=solo
+#              "D:\VSC Projects\App\env\Scripts\python" -m celery -A app.celery worker --loglevel=info --pool=solo
 #              celery -A app.celery beat --loglevel=info

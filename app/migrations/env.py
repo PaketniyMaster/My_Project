@@ -7,6 +7,7 @@ from app.database import Base, engine
 from app.models.game import Game  # Убедись, что модель подключена
 from app.models.review import Review  
 from app.models.user import User
+from app.models.game_summary import GameSummary
 
 # Конфиг Alembic
 config = context.config
