@@ -6,12 +6,12 @@ import requests
 from bs4 import BeautifulSoup
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-CSV_GAMES = os.path.join(os.path.dirname(__file__), "..", "csv", "games.csv")
-CSV_GAME_DETAILS = os.path.join(os.path.dirname(__file__), "..", "csv", "game_details_20k-27k.csv")
+CSV_GAMES = r"D:\VSC Projects\App\Project\app\csv\games_bs4.csv"
+CSV_GAME_DETAILS = r"D:\VSC Projects\App\Project\app\csv\games_details_bs4_extended.csv"
 NUM_THREADS = 10  
-MAX_GAMES = 10000  
+MAX_GAMES = 25005  
 SAVE_EVERY = 500  
-START_FROM = 20004  
+START_FROM = 0
 
 USER_AGENTS = [
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
@@ -44,6 +44,10 @@ def get_game_details(game_url, session):
         russian_supported = soup.select_one("#languageTable tr:nth-of-type(2) td:nth-of-type(2)")
         russian_supported = "Да" if russian_supported and "✔" in russian_supported.text else "Нет"
 
+        # Парсинг описания
+        description = soup.select_one(".game_description_snippet")
+        description = description.text.strip() if description else "Описание не найдено"
+
         review_summary = soup.select(".user_reviews_summary_row")
 
         reviews = "Отзывов нет"
@@ -73,16 +77,18 @@ def get_game_details(game_url, session):
             "reviews": reviews,
             "russian_supported": russian_supported,
             "genres": genres,
+            "description": description,
             "review_link": game_url + "/#all_reviews"
         }
     except Exception as e:
         print(f"Ошибка при парсинге {game_url}: {e}")
         return None
 
+
 def save_game_details_to_csv(details_list, append=False):
     mode = "a" if append else "w"
     with open(CSV_GAME_DETAILS, mode=mode, newline="", encoding="utf-8") as file:
-        writer = csv.DictWriter(file, fieldnames=["title", "release_date", "reviews", "russian_supported", "genres", "review_link"])
+        writer = csv.DictWriter(file, fieldnames=["title", "release_date", "reviews", "russian_supported", "genres", "description", "review_link"])
         if not append:
             writer.writeheader()
         writer.writerows(details_list)

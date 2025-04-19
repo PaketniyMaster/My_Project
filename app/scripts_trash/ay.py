@@ -1,15 +1,13 @@
-import requests
-from bs4 import BeautifulSoup
+import csv
 
-url = "https://www.russianfood.com/recipes/bytype/?fid=3&page=1"
-headers = {"User-Agent": "Mozilla/5.0"}
+file_path = r'D:\VSC Projects\App\Project\app\csv\reviews_10K-15k.csv'
 
-res = requests.get(url, headers=headers)
-res.encoding = 'windows-1251'
-soup = BeautifulSoup(res.text, "html.parser")
 
-# Попробуем вывести ВСЕ ссылки
-for a in soup.find_all("a"):
-    href = a.get("href")
-    if href and "/recipes/recipe.php" in href:
-        print(href)
+titles = set()
+
+with open(file_path, 'r', encoding='utf-8') as f:
+    reader = csv.DictReader(f, delimiter=';')
+    for row in reader:
+        titles.add(row['game_title'])
+
+print(f'Уникальных game_title: {len(titles)}')

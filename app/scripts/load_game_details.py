@@ -3,14 +3,14 @@ import re
 import os
 from datetime import datetime
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy.dialects.postgresql import insert
 from app.database import engine
 from app.models.game import Game
 import time
+from deep_translator import GoogleTranslator
 
 SessionLocal = sessionmaker(bind=engine)
 
-CSV_FILE = os.path.join(os.path.dirname(__file__), "..", "csv", "game_details_10k-26k.csv")
+CSV_FILE = r"D:\VSC Projects\App\Project\app\csv\games_details_bs4_extended.csv"
 
 class GameDetailsLoader:
 
@@ -23,11 +23,10 @@ class GameDetailsLoader:
             return None
         try:
             return datetime.strptime(date_str, "%d %b, %Y").date()
-        
         except ValueError:
             print(f"⚠ Ошибка обработки даты: {date_str}")
             return None
- 
+
     def parse_reviews(self, review_text):
         if not review_text or "Отзывов нет" in review_text:
             return None
@@ -36,15 +35,25 @@ class GameDetailsLoader:
 
     def parse_genres(self, genres_text):
         return genres_text.strip() if genres_text else None
-    
+
     def parse_russian_supported(self, value):
         return value.strip().lower() == "да"
-    
+
+    def parse_description(self, description_text):
+        return description_text.strip() if description_text else None
+
+    def translate_to_russian(self, text):
+        try:
+            return GoogleTranslator(source='en', target='ru').translate(text)
+        except Exception as e:
+            print(f"⚠ Ошибка перевода: {e}")
+            return None
+
     def load(self):
         with open(self.csv_file, newline="", encoding="utf-8") as file:
             reader = csv.DictReader(file)
             for row in reader:
-                game = self.session.query(Game).filter_by(name=row["title"]).one_or_none()  
+                game = self.session.query(Game).filter_by(name=row["title"]).one_or_none()
                 if not game:
                     print(f"❌ Игра '{row['title']}' не найдена. Пропускаем...")
                     continue
@@ -52,15 +61,20 @@ class GameDetailsLoader:
                 game.rating = self.parse_reviews(row["reviews"])
                 game.tags = self.parse_genres(row["genres"])
                 game.russian_supported = self.parse_russian_supported(row["russian_supported"])
+                description_en = self.parse_description(row["description"])
+                game.description_en = description_en
+                if description_en:
+                    translated = self.translate_to_russian(description_en)
+                    game.description_ru = translated if translated else None
         self.session.commit()
         print("✅ Данные об играх обновлены")
 
     def close(self):
         self.session.close()
- 
+
 
 if __name__ == "__main__":
-    file_csv = os.path.join(os.path.dirname(__file__), "..", "csv", "game_details_20k-27k.csv")
+    file_csv = r"D:\VSC Projects\App\Project\app\csv\games_details_bs4_extended.csv"
     loader = GameDetailsLoader(file_csv)
     loader.load()
     loader.close()

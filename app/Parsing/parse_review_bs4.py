@@ -10,6 +10,9 @@ NUM_THREADS = 10  # Потоки для игр
 MAX_CONCURRENT_REVIEWS = 10  # Одновременные запросы
 SLEEP_TIME = 0.1  # Задержка перед запросом
 SAVE_EVERY = 1  # Сохранять после каждой N игр
+input_file = r"D:\VSC Projects\App\Project\app\csv\game_details_10k-26k.csv"
+output_file = r"D:\VSC Projects\App\Project\app\csv\reviews_10K-26k.csv"
+start_row = 0
 
 def get_app_id(link):
     try:
@@ -92,17 +95,21 @@ def process_game(row):
     print(f"[{game_title}] Спарсено {len(game_reviews)} отзывов")
     return game_reviews
 
-def parse_steam_reviews(input_file="game_details_10k.csv", output_file="reviews_test1.csv"):
-    """Парсинг всех игр с автосохранением."""
+def parse_steam_reviews(input_file, output_file, start_row=0):
     start_time = time.time()
     games_processed = 0
     total_reviews = 0
-    temp_storage = []  # Временное хранилище отзывов
+    temp_storage = []
 
     with open(input_file, "r", encoding="utf-8") as infile, open(output_file, "a", encoding="utf-8", newline="") as outfile:
         reader = csv.DictReader(infile)
         writer = csv.writer(outfile, delimiter=";")
-        writer.writerow(["game_title", "review_type", "review_text"])  # Изменил порядок заголовков
+
+        if start_row == 0:
+            writer.writerow(["game_title", "review_type", "review_text"])
+
+        for _ in range(start_row):
+            next(reader, None)
 
         with ThreadPoolExecutor(max_workers=NUM_THREADS) as executor:
             futures = {executor.submit(process_game, row): row for row in reader}
@@ -114,13 +121,11 @@ def parse_steam_reviews(input_file="game_details_10k.csv", output_file="reviews_
                     total_reviews += len(game_reviews)
                     games_processed += 1
 
-                # **Сохраняем каждые `SAVE_EVERY` игр**
                 if games_processed % SAVE_EVERY == 0 and temp_storage:
                     writer.writerows(temp_storage)
-                    temp_storage.clear()  # Очищаем временное хранилище
+                    temp_storage.clear()
                     print(f"💾 Сохранены {games_processed} игр")
 
-    # **Сохраняем оставшиеся данные**
     if temp_storage:
         writer.writerows(temp_storage)
 
@@ -130,4 +135,4 @@ def parse_steam_reviews(input_file="game_details_10k.csv", output_file="reviews_
     print(f"⏳ Время работы: {round(end_time - start_time, 2)} сек")
 
 if __name__ == "__main__":
-    parse_steam_reviews()
+    parse_steam_reviews(input_file, output_file, start_row)
