@@ -15,8 +15,8 @@ if __name__ == "__main__":
         #parse_all_reviews(driver)
         #parse_games_multithreaded()
         #get_games_list(driver, steam_url)  # Парсим 10 игр
-        parse_games_multithreaded()
-        #parse_steam_reviews()
+        #parse_games_multithreaded()
+        parse_steam_reviews()
         
         
         #excluded_tags = [492, 872, 44868, 12095, 21978, 856791, 9130, 24904, 10397, 13906, 5577, 1445]

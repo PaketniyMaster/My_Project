@@ -101,5 +101,5 @@ class ReviewsLoader:
         print("✅ Отзывы загружены в БД")
 
 if __name__ == "__main__":
-    loader = ReviewsLoader(r"D:\VSC Projects\App\Project\app\csv\reviews_10K-15k.csv")
+    loader = ReviewsLoader(r"D:\VSC Projects\App\Project\app\csv\NICE_reviews.csv")
     loader.load()

@@ -8,6 +8,7 @@ from app.models.game import Game  # Убедись, что модель подк
 from app.models.review import Review  
 from app.models.user import User
 from app.models.game_summary import GameSummary
+from app.models.game_descriptions import GameDescription
 
 # Конфиг Alembic
 config = context.config

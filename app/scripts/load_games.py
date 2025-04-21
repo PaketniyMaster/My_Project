@@ -6,7 +6,7 @@ from app.models.game import Game
 
 SessionLocal = sessionmaker(bind=engine)
 
-CSV_GAMES = "games_bs4.csv"
+CSV_GAMES = r"D:\VSC Projects\App\Project\app\csv\NICE.csv"
 
 def load_games():
     session = SessionLocal()

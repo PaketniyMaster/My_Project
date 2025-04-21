@@ -6,12 +6,13 @@ import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 # Настройки
-NUM_THREADS = 10  # Потоки для игр
-MAX_CONCURRENT_REVIEWS = 10  # Одновременные запросы
-SLEEP_TIME = 0.1  # Задержка перед запросом
-SAVE_EVERY = 1  # Сохранять после каждой N игр
-input_file = r"D:\VSC Projects\App\Project\app\csv\game_details_10k-26k.csv"
-output_file = r"D:\VSC Projects\App\Project\app\csv\reviews_10K-26k.csv"
+NUM_THREADS = 10
+MAX_CONCURRENT_REVIEWS = 10
+SLEEP_TIME = 0.1
+SAVE_EVERY = 1
+MAX_REVIEWS_PER_GAME = 50000
+input_file = r"D:\VSC Projects\App\Project\app\csv\NICE_details copy.csv"
+output_file = r"D:\VSC Projects\App\Project\app\csv\NICE_reviews1.csv"
 start_row = 0
 
 def get_app_id(link):
@@ -21,7 +22,6 @@ def get_app_id(link):
         return None
 
 async def fetch_reviews(session, app_id, cursor):
-    """Асинхронный запрос страницы отзывов."""
     url = f"https://store.steampowered.com/appreviews/{app_id}"
     params = {
         "json": 1,
@@ -46,7 +46,6 @@ async def fetch_reviews(session, app_id, cursor):
         return None, cursor
 
 async def parse_reviews(app_id, game_title):
-    """Парсит ВСЕ отзывы (с автосохранением)."""
     reviews = []
     cursor = "*"
     
@@ -57,22 +56,23 @@ async def parse_reviews(app_id, game_title):
 
             if new_reviews:
                 for r in new_reviews:
+                    if len(reviews) >= MAX_REVIEWS_PER_GAME:
+                        print(f"⚠️ [DEBUG] Достигнут лимит отзывов для {game_title}")
+                        return reviews
                     review_text = r.get("review", "Отзыв отсутствует")
                     review_type = "Положительный" if r.get("voted_up") else "Отрицательный"
-                    reviews.append((game_title, review_type, review_text))  # Изменён порядок колонок
+                    reviews.append((game_title, review_type, review_text))
 
             if not new_cursor or new_cursor == cursor:
                 print(f"✅ [DEBUG] Достигнут конец отзывов для {game_title}")
-                break  # Заканчиваем, если Steam больше не даёт отзывы
+                break
 
-            cursor = new_cursor  # Обновляем курсор для следующей страницы
-
-            await asyncio.sleep(SLEEP_TIME)  # Добавляем задержку
+            cursor = new_cursor
+            await asyncio.sleep(SLEEP_TIME)
 
     return reviews
 
 def process_game(row):
-    """Запускает парсинг отзывов для одной игры в потоке."""
     if "%" not in row["reviews"]:
         return None
 
@@ -90,7 +90,7 @@ def process_game(row):
         game_reviews = loop.run_until_complete(parse_reviews(app_id, game_title))
     finally:
         if not loop.is_closed():
-            loop.close()  # Закрываем loop
+            loop.close()
 
     print(f"[{game_title}] Спарсено {len(game_reviews)} отзывов")
     return game_reviews

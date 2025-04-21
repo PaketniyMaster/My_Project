@@ -6,8 +6,8 @@ import requests
 from bs4 import BeautifulSoup
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-CSV_GAMES = r"D:\VSC Projects\App\Project\app\csv\games_bs4.csv"
-CSV_GAME_DETAILS = r"D:\VSC Projects\App\Project\app\csv\games_details_bs4_extended.csv"
+CSV_GAMES = r"D:\VSC Projects\App\Project\app\csv\NICE.csv"
+CSV_GAME_DETAILS = r"D:\VSC Projects\App\Project\app\csv\NICE_details.csv"
 NUM_THREADS = 10  
 MAX_GAMES = 25005  
 SAVE_EVERY = 500  
