@@ -6,7 +6,7 @@ import sys
 from bs4 import BeautifulSoup
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-CSV_FILE = "games123.csv"
+CSV_FILE = "D:\VSC Projects\App\Project\app\csv\timed_parse_games.csv"
 MAX_THREADS = 10
 logging.basicConfig(level=logging.INFO)
 
@@ -77,9 +77,6 @@ def save_to_csv(games):
         writer.writeheader()
         writer.writerows(games)
 
-logging.info("Скрипт действительно выполняется!")
-print("Используется Python в Games_list_bs4.py:", sys.executable)
 games = fetch_all_games()
-logging.info("Скрипт действительно выполняется!2")
 print(f"Итог: собрано игр: {len(games)}")
 save_to_csv(games)
